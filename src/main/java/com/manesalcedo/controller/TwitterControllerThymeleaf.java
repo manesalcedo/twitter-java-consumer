@@ -30,7 +30,8 @@ public class TwitterControllerThymeleaf {
     public String helloTwitter(Model model) {
         Twitter twitter = twitterConfiguration.getTwitterTemplate();
 
-        model.addAttribute(twitter.userOperations().getUserProfile());
+        //, <span th:text="${twitterProfile.name}">Some User</span>!
+        //model.addAttribute(twitter.userOperations().getUserProfile());
 
         RestTemplate restTemplate = new RestTemplate();
         GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject("https://api.github.com/search/repositories?q=reactive", GitHubSearchResponse.class);
