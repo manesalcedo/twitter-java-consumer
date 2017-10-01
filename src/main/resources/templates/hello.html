@@ -1,0 +1,18 @@
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Hello Twitter</title>
+</head>
+<body>
+<h3>Hello, <span th:text="${twitterProfile.name}">Some User</span>!</h3>
+
+    <h4>These are the search results for: </h4>
+<ul>
+    <li th:each="result:${results}"> <h4 th:text="${result.query}">#hashtag</h4>
+        <ul>
+            <li th:each="tweet:${result.tweets}" th:text="${tweet.text}">Friend</li>
+        </ul>
+    </li>
+</ul>
+
+</body>
+</html>
