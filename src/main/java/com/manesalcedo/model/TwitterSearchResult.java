@@ -1,16 +1,15 @@
-package com.manesalcedo.pojo;
+package com.manesalcedo.model;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.social.twitter.api.Tweet;
 
 import java.util.List;
 
 @Getter
 @Setter
 @Builder
-public class Result {
+public class TwitterSearchResult {
     String query;
-    List<Tweet> tweets;
+    List<String> tweets;
 }

@@ -1,4 +1,4 @@
-package com.manesalcedo.pojo;
+package com.manesalcedo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,13 +7,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Item {
-    String name;
-    @JsonProperty("html_url")
-    String htmlURL;
+public class GitHubSearchResponse {
+    @JsonProperty("total_count")
+    String totalCount;
+    List<Item> items;
+
 }
