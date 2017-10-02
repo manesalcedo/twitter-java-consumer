@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,29 +30,25 @@ public class TwitterController {
         RestTemplate restTemplate = new RestTemplate();
         GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject(GITHUB_SEARCH_REPO_URI, GitHubSearchResponse.class);
 
-        List<TwitterSearchResult> twitterSearchResultList = new LinkedList<>();
-
-        for (Item i : gitHubSearchResponse.getItems()) {
-            String query = i.getHtmlURL();
-            SearchResults searchResults = twitterTemplate.searchOperations().search(
-                    new SearchParameters(query)
-                            .resultType(SearchParameters.ResultType.RECENT)
-                            .count(10)
-                            .includeEntities(false));
-            if (searchResults.getTweets().isEmpty()) {
-                continue;
-            }
-            TwitterSearchResult twitterSearchResult = TwitterSearchResult.builder()
-                    .query(query)
-                    .tweets(searchResults.getTweets().stream()
-                            .map(Tweet::getText)
-                            .collect(Collectors.toList()))
-                    .build();
-            twitterSearchResultList.add(twitterSearchResult);
-        }
+        List<TwitterSearchResult> twitterSearchResultList2 = gitHubSearchResponse.getItems().stream()
+                .map(Item::getHtmlURL)
+                .map(i -> {
+                    SearchResults searchResults = twitterTemplate.searchOperations().search(
+                            new SearchParameters(i)
+                                    .resultType(SearchParameters.ResultType.RECENT)
+                                    .count(10)
+                                    .includeEntities(false));
+                    return TwitterSearchResult.builder()
+                            .query(i)
+                            .tweets(searchResults.getTweets().stream()
+                                    .map(Tweet::getText)
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
+                .collect(Collectors.toList());
 
         return TwitterSearchResponses.builder()
-                .twitterSearchResultList(twitterSearchResultList)
+                .twitterSearchResultList(twitterSearchResultList2)
                 .build();
     }
 }
