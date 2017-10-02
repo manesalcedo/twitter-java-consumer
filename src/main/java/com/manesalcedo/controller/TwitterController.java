@@ -1,6 +1,5 @@
 package com.manesalcedo.controller;
 
-import com.manesalcedo.configuration.TwitterConfiguration;
 import com.manesalcedo.model.GitHubSearchResponse;
 import com.manesalcedo.model.Item;
 import com.manesalcedo.model.TwitterSearchResponses;
@@ -9,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
-import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,12 +22,10 @@ import java.util.stream.Collectors;
 public class TwitterController {
 
     @Autowired
-    private TwitterConfiguration twitterConfiguration;
+    private TwitterTemplate twitterTemplate;
 
     @RequestMapping(value = "/githubOnTwitter/", method = RequestMethod.GET)
     public TwitterSearchResponses getGitHubRepoMentionedOnTwitter() {
-        Twitter twitter = twitterConfiguration.getTwitterTemplate();
-
         RestTemplate restTemplate = new RestTemplate();
         GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject("https://api.github.com/search/repositories?q=reactive", GitHubSearchResponse.class);
 
@@ -36,12 +33,12 @@ public class TwitterController {
 
         for (Item i : gitHubSearchResponse.getItems()) {
             String query = i.getHtmlURL();
-            SearchResults searchResults = twitter.searchOperations().search(
+            SearchResults searchResults = twitterTemplate.searchOperations().search(
                     new SearchParameters(query)
                             .resultType(SearchParameters.ResultType.RECENT)
                             .count(10)
                             .includeEntities(false));
-            if(searchResults.getTweets().isEmpty()){
+            if (searchResults.getTweets().isEmpty()) {
                 continue;
             }
             TwitterSearchResult twitterSearchResult = TwitterSearchResult.builder()
@@ -57,5 +54,4 @@ public class TwitterController {
                 .twitterSearchResultList(twitterSearchResultList)
                 .build();
     }
-
 }
