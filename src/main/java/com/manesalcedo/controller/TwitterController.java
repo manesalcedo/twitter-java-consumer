@@ -24,10 +24,12 @@ public class TwitterController {
     @Autowired
     private TwitterTemplate twitterTemplate;
 
+    private static final String GITHUB_SEARCH_REPO_URI = "https://api.github.com/search/repositories?q=reactive";
+
     @RequestMapping(value = "/githubOnTwitter/", method = RequestMethod.GET)
     public TwitterSearchResponses getGitHubRepoMentionedOnTwitter() {
         RestTemplate restTemplate = new RestTemplate();
-        GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject("https://api.github.com/search/repositories?q=reactive", GitHubSearchResponse.class);
+        GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject(GITHUB_SEARCH_REPO_URI, GitHubSearchResponse.class);
 
         List<TwitterSearchResult> twitterSearchResultList = new LinkedList<>();
 

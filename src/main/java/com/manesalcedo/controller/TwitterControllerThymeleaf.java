@@ -25,6 +25,8 @@ public class TwitterControllerThymeleaf {
     @Autowired
     private TwitterTemplate twitterTemplate;
 
+    private static final String GITHUB_SEARCH_REPO_URI = "https://api.github.com/search/repositories?q=reactive";
+
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String helloTwitter(Model model) {
         //with `write` permission we can show the Profile Username
@@ -32,7 +34,7 @@ public class TwitterControllerThymeleaf {
         //model.addAttribute(twitter.userOperations().getUserProfile());
 
         RestTemplate restTemplate = new RestTemplate();
-        GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject("https://api.github.com/search/repositories?q=reactive", GitHubSearchResponse.class);
+        GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject(GITHUB_SEARCH_REPO_URI, GitHubSearchResponse.class);
 
         List<TwitterSearchResult> twitterSearchResponses = new LinkedList<>();
 
