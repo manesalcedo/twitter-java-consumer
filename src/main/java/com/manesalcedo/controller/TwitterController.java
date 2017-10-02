@@ -1,12 +1,10 @@
 package com.manesalcedo.controller;
 
 import com.manesalcedo.model.GitHubSearchResponse;
-import com.manesalcedo.model.Item;
 import com.manesalcedo.model.TwitterSearchResponses;
 import com.manesalcedo.model.TwitterSearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.social.twitter.api.SearchParameters;
-import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,25 +27,21 @@ public class TwitterController {
         RestTemplate restTemplate = new RestTemplate();
         GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject(GITHUB_SEARCH_REPO_URI, GitHubSearchResponse.class);
 
-        List<TwitterSearchResult> twitterSearchResultList2 = gitHubSearchResponse.getItems().stream()
-                .map(Item::getHtmlURL)
-                .map(i -> {
-                    SearchResults searchResults = twitterTemplate.searchOperations().search(
-                            new SearchParameters(i)
-                                    .resultType(SearchParameters.ResultType.RECENT)
-                                    .count(10)
-                                    .includeEntities(false));
-                    return TwitterSearchResult.builder()
-                            .query(i)
-                            .tweets(searchResults.getTweets().stream()
-                                    .map(Tweet::getText)
-                                    .collect(Collectors.toList()))
-                            .build();
-                })
-                .collect(Collectors.toList());
-
         return TwitterSearchResponses.builder()
-                .twitterSearchResultList(twitterSearchResultList2)
+                .twitterSearchResultList(gitHubSearchResponse.getItems().parallelStream()
+                        .map(i -> TwitterSearchResult.builder()
+                                .query(i.getHtmlURL())
+                                .tweets(twitterTemplate.searchOperations().search(
+                                        new SearchParameters(i.getHtmlURL())
+                                                .resultType(SearchParameters.ResultType.RECENT)
+                                                .count(10)
+                                                .includeEntities(false))
+                                        .getTweets().parallelStream()
+                                        .map(Tweet::getText)
+                                        .collect(Collectors.toList()))
+                                .build())
+                        .collect(Collectors.toList())
+                )
                 .build();
     }
 }
