@@ -1,47 +1,46 @@
 package com.manesalcedo.controller;
 
-import com.manesalcedo.model.GitHubSearchResponse;
 import com.manesalcedo.model.TwitterSearchResponses;
 import com.manesalcedo.model.TwitterSearchResult;
+import com.manesalcedo.service.GitHubService;
+import com.manesalcedo.service.TwitterService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.social.twitter.api.SearchParameters;
-import org.springframework.social.twitter.api.Tweet;
-import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
 public class TwitterController {
 
-    @Autowired
-    private TwitterTemplate twitterTemplate;
+    private static final Logger LOGGER = Logger.getLogger(TwitterController.class.getName());
+    private TwitterService twitterService;
+    private GitHubService gitHubService;
 
-    private static final String GITHUB_SEARCH_REPO_URI = "https://api.github.com/search/repositories?q=reactive";
+    @Autowired
+    public TwitterController(TwitterService twitterService, GitHubService gitHubService){
+        this.twitterService = twitterService;
+        this.gitHubService = gitHubService;
+    }
 
     @RequestMapping(value = "/githubOnTwitter/", method = RequestMethod.GET)
     public TwitterSearchResponses getGitHubRepoMentionedOnTwitter() {
-        RestTemplate restTemplate = new RestTemplate();
-        GitHubSearchResponse gitHubSearchResponse = restTemplate.getForObject(GITHUB_SEARCH_REPO_URI, GitHubSearchResponse.class);
 
-        return TwitterSearchResponses.builder()
-                .twitterSearchResultList(gitHubSearchResponse.getItems().parallelStream()
+        LOGGER.info("start");
+        TwitterSearchResponses t = TwitterSearchResponses.builder()
+                .twitterSearchResultList(gitHubService.searchReactiveRepositories().parallelStream()
                         .map(i -> TwitterSearchResult.builder()
                                 .query(i.getHtmlURL())
-                                .tweets(twitterTemplate.searchOperations().search(
-                                        new SearchParameters(i.getHtmlURL())
-                                                .resultType(SearchParameters.ResultType.RECENT)
-                                                .count(10)
-                                                .includeEntities(false))
-                                        .getTweets().parallelStream()
-                                        .map(Tweet::getText)
-                                        .collect(Collectors.toList()))
+                                .tweets(twitterService.getTweets(i.getHtmlURL()))
                                 .build())
+                        .filter(f -> !f.getTweets().isEmpty())
                         .collect(Collectors.toList())
                 )
                 .build();
+        LOGGER.info("end");
+
+        return t;
     }
 }
